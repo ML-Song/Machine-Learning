@@ -2,7 +2,7 @@
 //  matrix.h
 //  ML
 //
-//  Created by Bayes on 22/08/2017.
+//  Created by Bayes on 23/08/2017.
 //  Copyright © 2017 Bayes. All rights reserved.
 //
 
@@ -26,18 +26,19 @@ using std::endl;
 
 template <typename T> class Matrix;
 template <typename T> Matrix<T> Dot(Matrix<T> const &m1, Matrix<T> const &m2);
+template <typename T> Matrix<T> Cat(Matrix<T> const &m1, Matrix<T> const &m2);
 //约束友元函数
 
 template <typename T>
 class Matrix {
 public:
     Matrix();
+    Matrix(long eye);//eye
     Matrix(long col, long row, T ele = T());
     Matrix(long col, long row, T *input);
     Matrix(vector<T> const &input);
     Matrix(vector<vector<T>> const &input);
     Matrix(Matrix<T> const &m);
-    //~Matrix();
     Status Show();
     T Get(long i, long j);
     Status Set(long i, long j, T ele);
@@ -52,6 +53,7 @@ public:
     Status AddColumn(long i1, double multiplier, long i2);
     Status AddRow(long j1, double multiplier, long j2);
     Status RowEchelon(long *swap = nullptr);
+    friend Matrix<T> Cat<T>(Matrix<T> const &m1, Matrix<T> const &m2);
     bool IsInversible();
     double Det();
     Matrix<T> Transpose();
@@ -154,6 +156,18 @@ Matrix<T>::Matrix()
     column_ = 1;
     row_ = 1;
     mat_.push_back(vector<T>(1));
+}
+
+template <typename T>
+Matrix<T>::Matrix(long eye)
+{
+    column_ = eye;
+    row_ = eye;
+    mat_ = vector<vector<T>>(eye, vector<T>(eye, 0));
+    for (long i = 0; i < eye; ++i)
+    {
+        mat_[i][i] = 1;
+    }
 }
 
 template <typename T>
@@ -422,6 +436,24 @@ Status Matrix<T>::RowEchelon(long *swap)
 }
 
 template <typename T>
+Matrix<T> Cat(Matrix<T> const &m1, Matrix<T> const &m2)
+{
+    if (m1.column_ != m2.column_)
+    {
+        throw std::invalid_argument("\nm1.column != m2.column\n");
+    }
+    Matrix<T> tmp(m1.column_, m1.row_ + m2.row_);
+    for (long i = 0; i < m1.column_; ++i)
+    {
+        for (long j = 0; j < m1.row_ + m2.row_; ++j)
+        {
+            tmp.Set(i, j, (j < m1.row_) ? (m1.mat_[i][j]): (m2.mat_[i][j - m2.row_]));
+        }
+    }
+    return tmp;
+}
+
+template <typename T>
 bool Matrix<T>::IsInversible()
 {
     if (column_ != row_)
@@ -618,7 +650,7 @@ vector<T> Matrix<T>::Eigen()
 {
     if (column_ != row_)
     {
-        throw std::invalid_argument("\nNot Square Mat\n");
+        throw std::invalid_argument("\nNot Square Matrix\n");
     }
     Matrix<T> Q, A = *this;
     vector<T> result;

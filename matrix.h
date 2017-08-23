@@ -32,42 +32,64 @@ template <typename T>
 class Matrix {
 public:
     Matrix();
+    Matrix(long col, long row, T ele = T());
     Matrix(long col, long row, T *input);
+    Matrix(vector<T> const &input);
     Matrix(vector<vector<T>> const &input);
     Matrix(Matrix<T> const &m);
     //~Matrix();
     Status Show();
+    T Get(long i, long j);
+    Status Set(long i, long j, T ele);
     Matrix<T> SubMatrix(long start_col, long end_col, long start_row, long end_row);
     Matrix<T> Cofactor(long x, long y);
     Matrix<T> operator=(Matrix<T> const &m);
     vector<T> operator[](long index);
-    Status SwapColumn(long i1, long i2);
-    Status SwapRow(long j1, long j2);
-    Status MultiplyColumn(long i1, double multiplier, long i2);
-    Status MultiplyRow(long j1, double multiplier, long j2);
+    Status SwitchColumn(long i1, long i2);
+    Status SwitchRow(long j1, long j2);
+    Status MultiplyColumn(long i, double multiplier);
+    Status MultiplyRow(long j, double multiplier);
+    Status AddColumn(long i1, double multiplier, long i2);
+    Status AddRow(long j1, double multiplier, long j2);
     Status RowEchelon(long *swap = nullptr);
     bool IsInversible();
     double Det();
-    Status Transpose();
+    Matrix<T> Transpose();
     Matrix<T> operator-();
     friend Matrix<T> Dot<T>(Matrix<T> const &m1, Matrix<T> const &m2);
     Matrix<T> Inverse();
     T Tr();
     long Rank();
-    vector<vector<T>> eigenvector();
-    
-    
+    double NormVector();
+    Matrix<T> Schmidt();
+    Matrix<T> GramSchmidt();
+    Matrix<T> QR();// return Q
+    vector<T> Eigen();
     
     friend Matrix<T> operator+(Matrix<T> const &m1, Matrix<T> const &m2)
     {
         if (m1.column_ != m2.column_ || m1.row_ != m2.row_)
         {
-            throw std::invalid_argument("two matrix have different dimensions");
+            throw std::invalid_argument("\ntwo matrix have different dimensions\n");
         }
         vector<vector<T>> tmp(m1.mat_);
         for (long i = 0; i < m1.column_; ++i) {
             for (long j = 0; j < m1.row_; ++j)
+            {
                 tmp[i][j] += m2.mat_[i][j];
+            }
+        }
+        return Matrix<T>(tmp);
+    }
+    
+    friend Matrix<T> operator*(T const &m1, Matrix<T> const &m2)
+    {
+        vector<vector<T>> tmp(m2.mat_);
+        for (long i = 0; i < m2.column_; ++i) {
+            for (long j = 0; j < m2.row_; ++j)
+            {
+                tmp[i][j] = m1 * m2.mat_[i][j];
+            }
         }
         return Matrix<T>(tmp);
     }
@@ -76,12 +98,14 @@ public:
     {
         if (m1.column_ != m2.column_ || m1.row_ != m2.row_)
         {
-            throw std::invalid_argument("two matrix have different dimensions");
+            throw std::invalid_argument("\ntwo matrix have different dimensions\n");
         }
         vector<vector<T>> tmp(m1.mat_);
         for (long i = 0; i < m1.column_; ++i) {
             for (long j = 0; j < m1.row_; ++j)
+            {
                 tmp[i][j] -= m2.mat_[i][j];
+            }
         }
         return Matrix<T>(tmp);
     }
@@ -90,12 +114,14 @@ public:
     {
         if (m1.column_ != m2.column_ || m1.row_ != m2.row_)
         {
-            throw std::invalid_argument("two matrix have different dimensions");
+            throw std::invalid_argument("\ntwo matrix have different dimensions\n");
         }
         vector<vector<T>> tmp(m1.mat_);
         for (long i = 0; i < m1.column_; ++i) {
             for (long j = 0; j < m1.row_; ++j)
+            {
                 tmp[i][j] *= m2.mat_[i][j];
+            }
         }
         return Matrix<T>(tmp);
     }
@@ -104,12 +130,14 @@ public:
     {
         if (m1.column_ != m2.column_ || m1.row_ != m2.row_)
         {
-            throw std::invalid_argument("two matrix have different dimensions");
+            throw std::invalid_argument("\ntwo matrix have different dimensions\n");
         }
         vector<vector<T>> tmp(m1.mat_);
         for (long i = 0; i < m1.column_; ++i) {
             for (long j = 0; j < m1.row_; ++j)
+            {
                 tmp[i][j] /= m2.mat_[i][j];
+            }
         }
         return Matrix<T>(tmp);
     }
@@ -129,6 +157,14 @@ Matrix<T>::Matrix()
 }
 
 template <typename T>
+Matrix<T>::Matrix(long col, long row, T ele)
+{
+    column_ = col;
+    row_ = row;
+    mat_ = vector<vector<T>>(col, vector<T>(row, ele));
+}
+
+template <typename T>
 Matrix<T>::Matrix(long col, long row, T *input)
 {
     column_ = col;
@@ -140,6 +176,14 @@ Matrix<T>::Matrix(long col, long row, T *input)
         }
         mat_.push_back(tmp);
     }
+}
+
+template <typename T>
+Matrix<T>::Matrix(vector<T> const &input)
+{
+    column_ = 1;
+    row_ = input.end() - input.begin();
+    mat_ = vector<vector<T>>{input};
 }
 
 template <typename T>
@@ -167,12 +211,26 @@ Status Matrix<T>::Show()
     for (auto i: mat_) {
         for (auto j: i) {
             if (fabs(j) > EPSILON)
-                cout << j << ' ';
+                printf("%-8.5lf ", j);
+                //cout << setw(6) << j << ' ';
             else
-                cout << 0 << ' ';
+                printf("0        ");
         }
         cout << endl;
     }
+    return OK;
+}
+
+template <typename T>
+T Matrix<T>::Get(long i, long j)
+{
+    return mat_[i][j];
+}
+
+template <typename T>
+Status Matrix<T>::Set(long i, long j, T ele)
+{
+    mat_[i][j] = ele;
     return OK;
 }
 
@@ -248,7 +306,7 @@ Matrix<T> Matrix<T>::Cofactor(long x, long y)
 }
 
 template <typename T>
-Status Matrix<T>::SwapColumn(long i1, long i2)
+Status Matrix<T>::SwitchColumn(long i1, long i2)
 {
     --i1;
     --i2;
@@ -259,7 +317,7 @@ Status Matrix<T>::SwapColumn(long i1, long i2)
 }
 
 template <typename T>
-Status Matrix<T>::SwapRow(long j1, long j2)
+Status Matrix<T>::SwitchRow(long j1, long j2)
 {
     --j1;
     --j2;
@@ -274,7 +332,29 @@ Status Matrix<T>::SwapRow(long j1, long j2)
 }
 
 template <typename T>
-Status Matrix<T>::MultiplyColumn(long i1, double multiplier, long i2)
+Status Matrix<T>::MultiplyColumn(long i, double multiplier)
+{
+    --i;
+    for (long j = 0; j < row_; ++j)
+    {
+        mat_[i][j] *= multiplier;
+    }
+    return OK;
+}
+
+template <typename T>
+Status Matrix<T>::MultiplyRow(long j, double multiplier)
+{
+    --j;
+    for (long i = 0; i < row_; ++i)
+    {
+        mat_[i][j] *= multiplier;
+    }
+    return OK;
+}
+
+template <typename T>
+Status Matrix<T>::AddColumn(long i1, double multiplier, long i2)
 {
     --i1;
     --i2;
@@ -288,7 +368,7 @@ Status Matrix<T>::MultiplyColumn(long i1, double multiplier, long i2)
 }
 
 template <typename T>
-Status Matrix<T>::MultiplyRow(long j1, double multiplier, long j2)
+Status Matrix<T>::AddRow(long j1, double multiplier, long j2)
 {
     --j1;
     --j2;
@@ -322,12 +402,12 @@ Status Matrix<T>::RowEchelon(long *swap)
         {
             if (swap != nullptr)
                 ++*swap;
-            SwapColumn(i + 1, max + 1);
+            SwitchColumn(i + 1, max + 1);
         }
         if (fabs(mat_[i][i]) > EPSILON )
         {
             for (long j = i  + 1; j < column_; ++j) {
-                MultiplyColumn(i + 1, - mat_[j][i] / mat_[i][i], j + 1);
+                AddColumn(i + 1, - mat_[j][i] / mat_[i][i], j + 1);
             }
         }
         else
@@ -364,7 +444,7 @@ template <typename T>
 double Matrix<T>::Det()
 {
     if (column_ != row_) {
-        throw std::invalid_argument("Not Square Matrix");
+        throw std::invalid_argument("\nNot Square Matrix\n");
     }
     vector<vector<T>> tmp(mat_);
     double det = 1;
@@ -385,7 +465,7 @@ double Matrix<T>::Det()
 }
 
 template <typename T>
-Status Matrix<T>::Transpose()
+Matrix<T> Matrix<T>::Transpose()
 {
     vector<vector<T>> tmp(row_, vector<T>(column_));
     for (long i = 0; i < column_; ++i) {
@@ -393,11 +473,7 @@ Status Matrix<T>::Transpose()
             tmp[j][i] = mat_[i][j];
         }
     }
-    long tmp_long = column_;
-    column_ = row_;
-    row_ = tmp_long;
-    mat_ = tmp;
-    return OK;
+    return Matrix<T>(tmp);
 }
 
 template <typename T>
@@ -417,12 +493,14 @@ template <typename T>
 Matrix<T> Dot(Matrix<T> const &m1, Matrix<T> const &m2)
 {
     if (m1.row_ != m2.column_)
-        throw std::invalid_argument("m1->row != m2->column");
+        throw std::invalid_argument("\nm1->row != m2->column\n");
     vector<vector<T>> tmp(m1.column_, vector<T>(m2.row_, 0));
     for (long x = 0; x < m1.column_; ++x)
         for (long y = 0; y < m2.row_; ++y)
             for (long i = 0; i < m1.row_; ++i)
+            {
                 tmp[x][y] += m1.mat_[x][i] * m2.mat_[i][y];
+            }
     return Matrix<T>(tmp);
 }
 
@@ -447,10 +525,12 @@ template <typename T>
 T Matrix<T>::Tr()
 {
     if (column_ != row_)
-        throw std::invalid_argument("Not Square Matrix");
+        throw std::invalid_argument("\nNot Square Matrix\n");
     T tr = 0;
     for (long i = 0; i < column_; ++i)
+    {
         tr += mat_[i][i];
+    }
     return tr;
 }
 
@@ -458,15 +538,99 @@ template <typename T>
 Matrix<T> Matrix<T>::Inverse()
 {
     if (!IsInversible())
-        throw std::invalid_argument("Not Inversible");
+        throw std::invalid_argument("\nNot Inversible\n");
     vector<vector<T>> tmp(mat_);
-    vector<vector<T>> det(column_, vector<T>(row_, Det()));
-    for(long i = 0; i < column_; ++i)
-        for(long j = 0; j < row_; ++j)
+    for (long i = 0; i < column_; ++i)
+        for (long j = 0; j < row_; ++j)
+        {
             tmp[i][j] = Cofactor(i + 1, j + 1).Det() * ((i + j) % 2 ? -1 : 1);
+        }
     Matrix<T> result(tmp);
     //result.Show();
-    result.Transpose();
-    return result / Matrix<T>(det);
+    result = result.Transpose();
+    return (1.0 / Det()) * result;
+}
+
+template <typename T>
+double Matrix<T>::NormVector()
+{
+    if (column_ != 1 && row_ != 1)
+    {
+        throw std::invalid_argument("\nNot a Vector\n");
+    }
+    if (column_ == 1)
+    {
+        return sqrt(Dot(*this, this->Transpose()).Get(0, 0));
+    }
+    else
+    {
+        return sqrt(Dot(this->Transpose(), *this).Get(0, 0));
+    }
+}
+
+template <typename T>
+Matrix<T> Matrix<T>::Schmidt()
+{
+    vector<vector<T>> tmp(column_, vector<T>(row_));
+    for (long i = 0; i < column_; ++i) {
+        Matrix<T> eta(vector<T>{mat_[i]});
+        Matrix<T> sum(eta);
+        for (long j = 0; j < i; ++j) {
+            Matrix<T> tmp_m(vector<T>{tmp[j]});
+            sum = sum - ((Dot(eta, tmp_m.Transpose())) / Dot(tmp_m, tmp_m.Transpose())).Get(0, 0) * tmp_m;
+            //tmp_m.Show();
+            //eta.Show();
+            //sum.Show();
+        }
+        tmp[i] = sum[0];
+    }
+    return Matrix<T>(tmp);
+}
+
+template <typename T>
+Matrix<T> Matrix<T>::GramSchmidt()
+{
+    Matrix<T> tmp(*this);
+    tmp = tmp.Transpose().Schmidt();
+    for (long i = 1; i <= row_; ++i)
+    {
+        double norm = Matrix<T>(tmp[i - 1]).NormVector();
+        tmp.MultiplyColumn(i, 1.0 / norm);
+    }
+    return tmp.Transpose();
+}
+
+template <typename T>
+Matrix<T> Matrix<T>::QR()
+{
+    Matrix<T> tmp(column_, row_);
+    for (long i = 0; i < column_; ++i) {
+        for (long j = 0; j < row_; ++j) {
+            tmp.Set(i, j, mat_[i][j]);
+        }
+    }
+    //tmp.MultiplyRow(2, 2);
+    return tmp.GramSchmidt();
+}
+
+template <typename T>
+vector<T> Matrix<T>::Eigen()
+{
+    if (column_ != row_)
+    {
+        throw std::invalid_argument("\nNot Square Mat\n");
+    }
+    Matrix<T> Q, A = *this;
+    vector<T> result;
+    for (int i = 0; i < (column_ + row_) * 5; ++i) {
+        Q = A.QR();
+        A = Dot(Dot(Q.Transpose(), A), Q);
+    }
+    //A.Show();
+    for (long i = 0; i < column_; ++i)
+    {
+        result.push_back(A.Get(i, i));
+    }
+    return result;
 }
 #endif /* matrix_h */

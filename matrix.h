@@ -27,8 +27,7 @@ using std::cout;
 using std::endl;
 
 template <typename T> class Matrix;
-template <typename T> Matrix<T> Dot(Matrix<T> const &m1, Matrix<T> const &m2);
-template <typename T> Matrix<T> Cat(Matrix<T> const &m1, Matrix<T> const &m2);
+//template <typename T> Matrix<T> Dot(Matrix<T> const &m1, Matrix<T> const &m2);
 //约束友元函数
 
 template <typename T>
@@ -37,41 +36,45 @@ public:
     Matrix();
     Matrix(long eye);//eye
     Matrix(long col, long row, T ele = T());
-    Matrix(long col, long row, T *input);
+    Matrix(long col, long row, const T *input);
     Matrix(vector<T> const &input);
     Matrix(vector<vector<T>> const &input);
     Matrix(Matrix<T> const &m);
-    Status Show();
-    T Get(long i, long j);
+    Status Show() const;
+    vector<vector<T>> GetMat() const;
+    T Get(long i, long j) const;
     Status Set(long i, long j, T ele);
-    Matrix<T> SubMatrix(long start_col, long end_col, long start_row, long end_row);
-    Matrix<T> Cofactor(long x, long y);
+    long GetColumn() const;
+    long GetRow() const;
+    Matrix<T> SubMatrix(long start_col, long end_col, long start_row, long end_row) const;
+    Matrix<T> Cofactor(long x, long y) const;
     Matrix<T> operator=(Matrix<T> const &m);
-    vector<T> operator[](long index);
+    vector<T> operator[](long index) const;
     Status SwitchColumn(long i1, long i2);
     Status SwitchRow(long j1, long j2);
     Status MultiplyColumn(long i, double multiplier);
     Status MultiplyRow(long j, double multiplier);
     Status AddColumn(long i1, double multiplier, long i2);
     Status AddRow(long j1, double multiplier, long j2);
-    Status RowEchelon(long *swap = nullptr);
-    friend Matrix<T> Cat<T>(Matrix<T> const &m1, Matrix<T> const &m2);
-    bool IsInversible();
-    double Det();
-    Matrix<T> Transpose();
-    Matrix<T> operator-();
-    friend Matrix<T> Dot<T>(Matrix<T> const &m1, Matrix<T> const &m2);
-    Matrix<T> Inverse();
-    T Tr();
-    long Rank();
-    double NormVector();
-    Matrix<T> Schmidt();
-    Matrix<T> GramSchmidt();
-    Matrix<T> QR();// return Q
-    vector<T> Eigen();
-    Matrix<T> Shuffle();
+    Matrix<T> RowEchelon(long *swap = nullptr) const;
+    Matrix<T> Cat(Matrix<T> const &m) const;
+    bool IsInversible() const;
+    double Det() const;
+    Matrix<T> Transpose() const;
+    Matrix<T> operator-() const;
+    //friend Matrix<T> Dot<T>(Matrix<T> const &m1, Matrix<T> const &m2);
+    Matrix<T> Dot(Matrix<T> const &m) const;
+    Matrix<T> Inverse() const;
+    T Tr() const;
+    long Rank() const;
+    double NormVector() const;
+    Matrix<T> Schmidt() const;
+    Matrix<T> GramSchmidt() const;
+    Matrix<T> QR() const;// return Q
+    vector<T> Eigen() const;
+    Matrix<T> Shuffle() const;
     
-    friend bool operator==(Matrix<T> const &m1, Matrix<T> const &m2)
+    friend bool operator==(Matrix<T> const &m1, Matrix<T> const &m2) 
     {
         if (m1.column_ != m2.column_ || m1.row_ != m2.row_)
         {
@@ -201,7 +204,7 @@ Matrix<T>::Matrix(long col, long row, T ele)
 }
 
 template <typename T>
-Matrix<T>::Matrix(long col, long row, T *input)
+Matrix<T>::Matrix(long col, long row, const T *input)
 {
     column_ = col;
     row_ = row;
@@ -227,7 +230,7 @@ Matrix<T>::Matrix(vector<vector<T>> const &input)
 {
     column_ = input.end() - input.begin();
     row_ = input[0].end() - input[0].begin();
-    for (auto i: input)
+    for (auto &i: input)
     {
         mat_.push_back(i);
     }
@@ -242,10 +245,10 @@ Matrix<T>::Matrix(Matrix<T> const &m)
 }
 
 template <typename T>
-Status Matrix<T>::Show()
+Status Matrix<T>::Show() const
 {
-    for (auto i: mat_) {
-        for (auto j: i) {
+    for (auto &i: mat_) {
+        for (auto &j: i) {
             if (fabs(j) > EPSILON)
                 printf("%-8.5lf  ", j);
                 //cout << setw(6) << j << ' ';
@@ -258,7 +261,13 @@ Status Matrix<T>::Show()
 }
 
 template <typename T>
-T Matrix<T>::Get(long i, long j)
+vector<vector<T>> Matrix<T>::GetMat() const
+{
+    return mat_;
+}
+
+template <typename T>
+T Matrix<T>::Get(long i, long j) const
 {
     return mat_[i][j];
 }
@@ -271,7 +280,19 @@ Status Matrix<T>::Set(long i, long j, T ele)
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::SubMatrix(long start_col, long end_col, long start_row, long end_row)
+long Matrix<T>::GetColumn() const
+{
+    return column_;
+}
+
+template <typename T>
+long Matrix<T>::GetRow() const
+{
+    return row_;
+}
+
+template <typename T>
+Matrix<T> Matrix<T>::SubMatrix(long start_col, long end_col, long start_row, long end_row) const
 {
     start_row -= 1;
     start_col -= 1;
@@ -296,13 +317,13 @@ Matrix<T> Matrix<T>::operator=(Matrix<T> const &m)
 }
 
 template <typename T>
-vector<T> Matrix<T>::operator[](long index)
+vector<T> Matrix<T>::operator[](long index) const
 {
     return mat_[index];
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::Cofactor(long x, long y)
+Matrix<T> Matrix<T>::Cofactor(long x, long y) const
 {
     --x;
     --y;
@@ -418,19 +439,15 @@ Status Matrix<T>::AddRow(long j1, double multiplier, long j2)
 }
 
 template <typename T>
-Status Matrix<T>::RowEchelon(long *swap)
+Matrix<T> Matrix<T>::RowEchelon(long *swap) const
 {
-//    vector<vector<T>> tmp, return_tmp;
-//    for (auto i: mat_)
-//    {
-//        tmp.push_back(i);
-//    }
-    for (long i = 0; i < column_ - 1 && i < row_; ++i)
+    Matrix<T> tmp(*this);
+    for (long i = 0; i < tmp.GetColumn() - 1 && i < tmp.GetRow(); ++i)
     {
         long max = i;
-        for (long j = i; j < column_; ++j)
+        for (long j = i; j < tmp.GetColumn(); ++j)
         {
-            if (mat_[j][i] > mat_[max][i]) {
+            if (fabs(tmp.Get(j, i)) > fabs(tmp.Get(max, i))) {
                 max = j;
             }
         }
@@ -438,88 +455,76 @@ Status Matrix<T>::RowEchelon(long *swap)
         {
             if (swap != nullptr)
                 ++*swap;
-            SwitchColumn(i + 1, max + 1);
+            tmp.SwitchColumn(i + 1, max + 1);
         }
-        if (fabs(mat_[i][i]) > EPSILON )
+        if (fabs(tmp.Get(i, i)) > EPSILON )
         {
-            for (long j = i  + 1; j < column_; ++j) {
-                AddColumn(i + 1, - mat_[j][i] / mat_[i][i], j + 1);
+            for (long j = i  + 1; j < tmp.GetColumn(); ++j) {
+                tmp.AddColumn(i + 1, - tmp.Get(j, i) / tmp.Get(i, i), j + 1);
             }
         }
-        else
-        {
-            ;//continue;
-        }
-        //Show();
     }
-    //return_tmp = mat_;
-    //mat_ = tmp;
-    return OK;//Matrix<T>(return_tmp);
+    return tmp;//Matrix<T>(return_tmp);
 }
 
 template <typename T>
-Matrix<T> Cat(Matrix<T> const &m1, Matrix<T> const &m2)
+Matrix<T> Matrix<T>::Cat(Matrix<T> const &m) const
 {
-    if (m1.column_ != m2.column_)
+    if (column_ != m.GetColumn())
     {
         throw std::invalid_argument("\nm1.column != m2.column\n");
     }
-    Matrix<T> tmp(m1.column_, m1.row_ + m2.row_);
-    for (long i = 0; i < m1.column_; ++i)
+    Matrix<T> tmp(column_, row_ + m.GetRow());
+    for (long i = 0; i < column_; ++i)
     {
-        for (long j = 0; j < m1.row_ + m2.row_; ++j)
+        for (long j = 0; j < row_ + m.GetRow(); ++j)
         {
-            tmp.Set(i, j, (j < m1.row_) ? (m1.mat_[i][j]): (m2.mat_[i][j - m2.row_]));
+            tmp.Set(i, j, (j < row_) ? (mat_[i][j]): (m.Get(i, j - m.GetRow())));
         }
     }
     return tmp;
 }
 
 template <typename T>
-bool Matrix<T>::IsInversible()
+bool Matrix<T>::IsInversible() const
 {
     if (column_ != row_)
         return false;
-    vector<vector<T>> tmp(mat_);
-    RowEchelon();
+    Matrix<T> tmp(RowEchelon());
     for (long i = 0; i < column_; ++i)
     {
-        if (fabs(mat_[i][i]) < EPSILON)
+        if (fabs(tmp.Get(i, i)) < EPSILON)
         {
-            mat_ = tmp;
             return false;
         }
     }
-    mat_ = tmp;
     return true;
 }
 
 template <typename T>
-double Matrix<T>::Det()
+double Matrix<T>::Det() const
 {
     if (column_ != row_) {
         throw std::invalid_argument("\nNot Square Matrix\n");
     }
-    vector<vector<T>> tmp(mat_);
     double det = 1;
     long swap = 0;
-    RowEchelon(&swap);
-    for (long i = column_ - 1; i >= 0; --i)
+    Matrix<T> tmp(RowEchelon(&swap));
+    for (long i = tmp.GetColumn() - 1; i >= 0; --i)
     {
         //cout << det << endl;
-        if (fabs(mat_[i][i]) < EPSILON)
+        if (fabs(tmp.Get(i, i)) < EPSILON)
         {
             det = 0;
             break;
         }
-        det *= mat_[i][i];
+        det *= tmp.Get(i, i);
     }
-    mat_ = tmp;
     return det * (swap % 2 ? -1 : 1);
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::Transpose()
+Matrix<T> Matrix<T>::Transpose() const
 {
     vector<vector<T>> tmp(row_, vector<T>(column_));
     for (long i = 0; i < column_; ++i) {
@@ -531,7 +536,7 @@ Matrix<T> Matrix<T>::Transpose()
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::operator-()
+Matrix<T> Matrix<T>::operator-() const
 {
     vector<vector<T>> tmp(mat_);
     for (auto &i: tmp) {
@@ -543,40 +548,52 @@ Matrix<T> Matrix<T>::operator-()
     return Matrix<T>(tmp);
 }
 
+//template <typename T>
+//Matrix<T> Dot(Matrix<T> const &m1, Matrix<T> const &m2)
+//{
+//    if (m1.row_ != m2.column_)
+//        throw std::invalid_argument("\nm1->row != m2->column\n");
+//    vector<vector<T>> tmp(m1.column_, vector<T>(m2.row_, 0));
+//    for (long x = 0; x < m1.column_; ++x)
+//        for (long y = 0; y < m2.row_; ++y)
+//            for (long i = 0; i < m1.row_; ++i)
+//            {
+//                tmp[x][y] += m1.mat_[x][i] * m2.mat_[i][y];
+//            }
+//    return Matrix<T>(tmp);
+//}
 template <typename T>
-Matrix<T> Dot(Matrix<T> const &m1, Matrix<T> const &m2)
+Matrix<T> Matrix<T>::Dot(Matrix<T> const &m) const
 {
-    if (m1.row_ != m2.column_)
+    if (row_ != m.GetColumn())
         throw std::invalid_argument("\nm1->row != m2->column\n");
-    vector<vector<T>> tmp(m1.column_, vector<T>(m2.row_, 0));
-    for (long x = 0; x < m1.column_; ++x)
-        for (long y = 0; y < m2.row_; ++y)
-            for (long i = 0; i < m1.row_; ++i)
+    vector<vector<T>> tmp(column_, vector<T>(m.GetRow(), 0));
+    for (long x = 0; x < column_; ++x)
+        for (long y = 0; y < m.GetRow(); ++y)
+            for (long i = 0; i < row_; ++i)
             {
-                tmp[x][y] += m1.mat_[x][i] * m2.mat_[i][y];
+                tmp[x][y] += Get(x, i) * m.Get(i, y);
             }
     return Matrix<T>(tmp);
 }
 
 template <typename T>
-long Matrix<T>::Rank()
+long Matrix<T>::Rank() const
 {
-    vector<vector<T>> tmp(mat_);
-    RowEchelon();
-    long rank = column_;
-    for (long i = column_ - 1; i > 0; --i)
+    Matrix<T> tmp(RowEchelon());
+    long rank = tmp.GetColumn();
+    for (long i = tmp.GetColumn() - 1; i > 0; --i)
     {
-        if (fabs(mat_[i][row_ - 1]) < EPSILON)
+        if (fabs(tmp.Get(i, tmp.GetRow() - 1)) < EPSILON)
             --rank;
         else
             break;
     }
-    mat_ = tmp;
     return rank;
 }
 
 template <typename T>
-T Matrix<T>::Tr()
+T Matrix<T>::Tr() const
 {
     if (column_ != row_)
         throw std::invalid_argument("\nNot Square Matrix\n");
@@ -589,7 +606,7 @@ T Matrix<T>::Tr()
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::Inverse()
+Matrix<T> Matrix<T>::Inverse() const
 {
     if (!IsInversible())
         throw std::invalid_argument("\nNot Inversible\n");
@@ -606,7 +623,7 @@ Matrix<T> Matrix<T>::Inverse()
 }
 
 template <typename T>
-double Matrix<T>::NormVector()
+double Matrix<T>::NormVector() const
 {
     if (column_ != 1 && row_ != 1)
     {
@@ -614,16 +631,16 @@ double Matrix<T>::NormVector()
     }
     if (column_ == 1)
     {
-        return sqrt(Dot(*this, this->Transpose()).Get(0, 0));
+        return sqrt(this->Dot(this->Transpose()).Get(0, 0));
     }
     else
     {
-        return sqrt(Dot(this->Transpose(), *this).Get(0, 0));
+        return sqrt(this->Transpose().Dot(*this).Get(0, 0));
     }
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::Schmidt()
+Matrix<T> Matrix<T>::Schmidt() const
 {
     vector<vector<T>> tmp(column_, vector<T>(row_));
     for (long i = 0; i < column_; ++i) {
@@ -631,7 +648,7 @@ Matrix<T> Matrix<T>::Schmidt()
         Matrix<T> sum(eta);
         for (long j = 0; j < i; ++j) {
             Matrix<T> tmp_m(vector<T>{tmp[j]});
-            sum = sum - ((Dot(eta, tmp_m.Transpose())) / Dot(tmp_m, tmp_m.Transpose())).Get(0, 0) * tmp_m;
+            sum = sum - (eta.Dot(tmp_m.Transpose()) / tmp_m.Dot(tmp_m.Transpose())).Get(0, 0) * tmp_m;
             //tmp_m.Show();
             //eta.Show();
             //sum.Show();
@@ -642,7 +659,7 @@ Matrix<T> Matrix<T>::Schmidt()
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::GramSchmidt()
+Matrix<T> Matrix<T>::GramSchmidt() const
 {
     Matrix<T> tmp(*this);
     tmp = tmp.Transpose().Schmidt();
@@ -655,7 +672,7 @@ Matrix<T> Matrix<T>::GramSchmidt()
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::QR()
+Matrix<T> Matrix<T>::QR() const
 {
     Matrix<T> tmp(column_, row_);
     for (long i = 0; i < column_; ++i) {
@@ -668,7 +685,7 @@ Matrix<T> Matrix<T>::QR()
 }
 
 template <typename T>
-vector<T> Matrix<T>::Eigen()
+vector<T> Matrix<T>::Eigen() const
 {
     if (column_ != row_)
     {
@@ -678,7 +695,7 @@ vector<T> Matrix<T>::Eigen()
     vector<T> result;
     for (int i = 0; i < (column_ + row_) * 5; ++i) {
         Q = A.QR();
-        A = Dot(Dot(Q.Transpose(), A), Q);
+        A = Q.Transpose().Dot(A).Dot(Q);
     }
     //A.Show();
     for (long i = 0; i < column_; ++i)
@@ -689,13 +706,12 @@ vector<T> Matrix<T>::Eigen()
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::Shuffle() {
+Matrix<T> Matrix<T>::Shuffle() const
+{
     vector<vector<T>> tmp(mat_);
     long long seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::shuffle(std::begin(mat_), std::end(mat_), std::default_random_engine(unsigned (seed)));
-    Matrix<T> result(mat_);
-    mat_ = tmp;
-    return result;
+    std::shuffle(std::begin(tmp), std::end(tmp), std::default_random_engine(unsigned (seed)));
+    return Matrix<T>(tmp);
 }
 
 #endif /* matrix_h */

@@ -17,49 +17,57 @@ using namespace std;
 int main(int argc, const char * argv[]) {
     clock_t start = clock();
     
-    vector<double> test1{5, -3, 2};
-    vector<double> test2{6, -4, 4};
-    vector<double> test3{4, -4, 7};
-    //vector<double> test4{1, -1, 2};
-    vector<vector<double>> test5{test1, test2, test3};
-    Matrix<double> test(test5);
-    Matrix<double> tmp(test);
+//    vector<double> test1{5, -3, 2};
+//    vector<double> test2{6, -4, 4};
+//    vector<double> test3{4, -4, 7};
+//    //vector<double> test4{1, -1, 2};
+//    vector<vector<double>> test5{test1, test2, test3};
+//    Matrix<double> test(test5);
+//    Matrix<double> tmp(test);
+//    Matrix<double> tmp_v(test1);
     
-    
-//    tmp.SwapColumn(2, 3);
-//    tmp.SwapRow(1, 2);
-//    tmp.MultiplyColumn(1, -1, 2);
-//    tmp.MultiplyRow(1, -1, 2);
-//    tmp.RowEchelon();
+//    Matrix<double>(3).Show();
+//    Matrix<double>(3, 4, 4).Show();
+//    Matrix<double>(test1).Show();
+//    cout << tmp.Get(1, 1) << endl;
+//    tmp.Set(0, 0, 3);
+//    tmp.Show();
+//    cout << tmp.GetColumn() << tmp.GetRow() << endl;
 //    tmp.SubMatrix(2, 3, 2, 3).Show();
-//    tmp.Cofactor(2, 1).Show();
-//    cout << tmp.Det() << endl;
+//    tmp.Cofactor(2, 2).Show();
+//    tmp_v = tmp;
+//    tmp_v.Show();
+//    for (auto &i: tmp[1])
+//        cout << i << " ";
+//    tmp.SwitchRow(1, 2);
+//    tmp.SwitchColumn(3, 2);
+//    tmp.MultiplyColumn(1, 0.2);
+//    tmp.MultiplyRow(2, 0.8);
+//    tmp.AddColumn(1, 2, 2);
+//    tmp.AddRow(2, 0.5, 3);
+//    tmp.RowEchelon().Show();
+//    tmp.Cat(tmp).Show();
+//    cout << tmp.IsInversible() << " " << tmp.Det() << endl;
 //    tmp.Transpose().Show();
-//    tmp = test * test;
-//    Dot(tmp, test).Show();
-//    cout << tmp.IsInversible() << endl;
-//    tmp.Inverse().Show();
-//    Dot(tmp.Inverse(), tmp).Show();
-//    tmp.Show();
-//    Matrix<double> tmp1(tmp.Cofactor(1, 2));
-//    tmp1.Show();
-//    cout << tmp1.Det() << endl;
-//    tmp1.RowEchelon();
-//    tmp1.Show();
-//    (test - test).Show();
-//    tmp.Show();
-//    cout << tmp.Det() << endl;
-//    tmp.Transpose().Schmidt().Transpose().Show();
-//    tmp.MultiplyRow(2, 2);
+//    (-tmp).Show();
+//    tmp.Dot(tmp).Show();
+//    tmp.Inverse().Dot(tmp).Show();
+//    tmp.RowEchelon().Show();
+//    cout << tmp.Tr() << endl;
+//    cout << tmp.Rank() << endl;
+//    cout << Matrix<double>(test1).NormVector() << endl;
 //    tmp.GramSchmidt().Show();
 //    tmp.QR().Transpose().Show();
 //    tmp.QR().Inverse().Show();
-//    Dot(tmp.QR().Inverse(), tmp).Show();
-//    for (auto i: tmp.Eigen())
-//        cout << i << endl;
-//    Cat(tmp.Transpose(), tmp.Transpose()).Transpose().Show();
-    tmp.Shuffle().Show();
-//    cout << (tmp == test) << endl;
+//    for (auto &i: tmp.Eigen())
+//        cout << i << " ";
+//    tmp.Transpose().Shuffle().Show();
+//    cout << (tmp == tmp_v) << endl;
+//    (tmp / tmp).Show();
+//    tmp.Show();
+    
+    
+    
     
     
     clock_t end = clock();

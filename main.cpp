@@ -58,6 +58,8 @@ int main(int argc, const char * argv[]) {
 //    for (auto i: tmp.Eigen())
 //        cout << i << endl;
 //    Cat(tmp.Transpose(), tmp.Transpose()).Transpose().Show();
+    tmp.Shuffle().Show();
+//    cout << (tmp == test) << endl;
     
     
     clock_t end = clock();

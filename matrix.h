@@ -11,6 +11,8 @@
 
 #include <vector>
 #include <math.h>
+#include <algorithm>
+#include <random>
 
 typedef int Status;
 
@@ -67,6 +69,26 @@ public:
     Matrix<T> GramSchmidt();
     Matrix<T> QR();// return Q
     vector<T> Eigen();
+    Matrix<T> Shuffle();
+    
+    friend bool operator==(Matrix<T> const &m1, Matrix<T> const &m2)
+    {
+        if (m1.column_ != m2.column_ || m1.row_ != m2.row_)
+        {
+            return false;
+        }
+        for (long i = 0; i < m1.column_; ++i)
+        {
+            for (long j = 0; j < m1.row_; ++j)
+            {
+                if (m1.mat_[i][j] != m2.mat_[i][j])
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
     
     friend Matrix<T> operator+(Matrix<T> const &m1, Matrix<T> const &m2)
     {
@@ -225,7 +247,7 @@ Status Matrix<T>::Show()
     for (auto i: mat_) {
         for (auto j: i) {
             if (fabs(j) > EPSILON)
-                printf("%-8.5lf ", j);
+                printf("%-8.5lf  ", j);
                 //cout << setw(6) << j << ' ';
             else
                 printf("0        ");
@@ -665,4 +687,15 @@ vector<T> Matrix<T>::Eigen()
     }
     return result;
 }
+
+template <typename T>
+Matrix<T> Matrix<T>::Shuffle() {
+    vector<vector<T>> tmp(mat_);
+    long long seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle(std::begin(mat_), std::end(mat_), std::default_random_engine(unsigned (seed)));
+    Matrix<T> result(mat_);
+    mat_ = tmp;
+    return result;
+}
+
 #endif /* matrix_h */

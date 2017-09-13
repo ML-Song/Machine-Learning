@@ -17,11 +17,11 @@ using namespace std;
 int main(int argc, const char * argv[]) {
     clock_t start = clock();
     
-//    vector<double> test1{5, -3, 2};
-//    vector<double> test2{6, -4, 4};
-//    vector<double> test3{4, -4, 7};
-//    //vector<double> test4{1, -1, 2};
-//    vector<vector<double>> test5{test1, test2, test3};
+//    vector<double> test1{0, 0, 0};
+//    vector<double> test2{0, 1, 0};
+//    vector<double> test3{1, 0, 0};
+//    vector<double> test4{1, 1, 1};
+//    vector<vector<double>> test5{test1, test2, test3, test4};
 //    Matrix<double> test(test5);
 //    Matrix<double> tmp(test);
 //    Matrix<double> tmp_v(test1);
@@ -55,7 +55,7 @@ int main(int argc, const char * argv[]) {
 //    tmp.RowEchelon().Show();
 //    cout << tmp.Tr() << endl;
 //    cout << tmp.Rank() << endl;
-//    cout << Matrix<double>(test1).NormVector() << endl;
+//    cout << Matrix<double>(test1).NormVector_2() << endl;
 //    tmp.GramSchmidt().Show();
 //    tmp.QR().Transpose().Show();
 //    tmp.QR().Inverse().Show();
@@ -65,8 +65,25 @@ int main(int argc, const char * argv[]) {
 //    cout << (tmp == tmp_v) << endl;
 //    (tmp / tmp).Show();
 //    tmp.Show();
-    
-    
+    vector<vector<double>> tmp;
+    for (auto i: {0.0, 1.0}) {
+        for (auto j: {0.0, 1.0})
+        {
+            for (auto k: {0.0, 1.0})
+            {
+                tmp.push_back(vector<double>{i, j, k, double (((int) i) && ((int) j) && ((int) k))});
+            }
+        }
+    }
+    Matrix<double> test(tmp);
+    //test.Show();
+    Perceptron perceptron(test, test);
+    //cout << perceptron.Predict(Matrix<double>(test4));
+    //cout << perceptron.Evaluate();
+    //cout << Matrix<double>(test1).NormVector_1();
+    perceptron.Train(2000, 0.01, 1e-5);
+    perceptron.PrintWeights();
+    cout << perceptron.Predict(Matrix<double>(vector<double>{0.5, 0.5, 0.5}));
     
     
     

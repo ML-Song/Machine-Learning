@@ -67,7 +67,8 @@ public:
     Matrix<T> Inverse() const;
     T Tr() const;
     long Rank() const;
-    double NormVector() const;
+    double NormVector_2() const;
+    double NormVector_1() const;
     Matrix<T> Schmidt() const;
     Matrix<T> GramSchmidt() const;
     Matrix<T> QR() const;// return Q
@@ -169,8 +170,8 @@ public:
         return Matrix<T>(tmp);
     }
 protected:
-    long column_ = 0;
-    long row_ = 0;
+    long column_ = 0;//行
+    long row_ = 0;//列
     vector<vector<T>> mat_;
 };
 
@@ -474,15 +475,13 @@ Matrix<T> Matrix<T>::Cat(Matrix<T> const &m) const
     {
         throw std::invalid_argument("\nm1.column != m2.column\n");
     }
-    Matrix<T> tmp(column_, row_ + m.GetRow());
+    vector<vector<T>> tmp_vec(mat_), tmp_m(m.GetMat());
     for (long i = 0; i < column_; ++i)
     {
-        for (long j = 0; j < row_ + m.GetRow(); ++j)
-        {
-            tmp.Set(i, j, (j < row_) ? (mat_[i][j]): (m.Get(i, j - m.GetRow())));
-        }
+        //cout << tmp_m[i].end() - tmp_m[i].begin();
+        tmp_vec[i].insert(tmp_vec[i].end(), tmp_m[i].begin(), tmp_m[i].end());
     }
-    return tmp;
+    return Matrix<T>(tmp_vec);
 }
 
 template <typename T>
@@ -623,7 +622,7 @@ Matrix<T> Matrix<T>::Inverse() const
 }
 
 template <typename T>
-double Matrix<T>::NormVector() const
+double Matrix<T>::NormVector_2() const
 {
     if (column_ != 1 && row_ != 1)
     {
@@ -636,6 +635,23 @@ double Matrix<T>::NormVector() const
     else
     {
         return sqrt(this->Transpose().Dot(*this).Get(0, 0));
+    }
+}
+
+template <typename T>
+double Matrix<T>::NormVector_1() const
+{
+    if (column_ != 1 && row_ != 1)
+    {
+        throw std::invalid_argument("\nNot a Vector\n");
+    }
+    if (column_ == 1)
+    {
+        return this->Dot(Matrix<T>(row_, 1, 1)).Get(0, 0);
+    }
+    else
+    {
+        return Matrix<T>(1, column_, 1).Dot(*this).Get(0, 0);
     }
 }
 
@@ -665,7 +681,7 @@ Matrix<T> Matrix<T>::GramSchmidt() const
     tmp = tmp.Transpose().Schmidt();
     for (long i = 1; i <= row_; ++i)
     {
-        double norm = Matrix<T>(tmp[i - 1]).NormVector();
+        double norm = Matrix<T>(tmp[i - 1]).NormVector_2();
         tmp.MultiplyColumn(i, 1.0 / norm);
     }
     return tmp.Transpose();

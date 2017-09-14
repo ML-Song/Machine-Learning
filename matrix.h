@@ -67,8 +67,9 @@ public:
     Matrix<T> Inverse() const;
     T Tr() const;
     long Rank() const;
-    double NormVector_2() const;
-    double NormVector_1() const;
+    //double NormVector_2() const;
+    //double NormVector_1() const;
+    double NormVector(long p) const;
     Matrix<T> Schmidt() const;
     Matrix<T> GramSchmidt() const;
     Matrix<T> QR() const;// return Q
@@ -621,38 +622,67 @@ Matrix<T> Matrix<T>::Inverse() const
     return (1.0 / Det()) * result;
 }
 
-template <typename T>
-double Matrix<T>::NormVector_2() const
-{
-    if (column_ != 1 && row_ != 1)
-    {
-        throw std::invalid_argument("\nNot a Vector\n");
-    }
-    if (column_ == 1)
-    {
-        return sqrt(this->Dot(this->Transpose()).Get(0, 0));
-    }
-    else
-    {
-        return sqrt(this->Transpose().Dot(*this).Get(0, 0));
-    }
-}
+//template <typename T>
+//double Matrix<T>::NormVector_2() const
+//{
+//    if (column_ != 1 && row_ != 1)
+//    {
+//        throw std::invalid_argument("\nNot a Vector\n");
+//    }
+//    if (column_ == 1)
+//    {
+//        return sqrt(this->Dot(this->Transpose()).Get(0, 0));
+//    }
+//    else
+//    {
+//        return sqrt(this->Transpose().Dot(*this).Get(0, 0));
+//    }
+//}
+
+//template <typename T>
+//double Matrix<T>::NormVector_1() const
+//{
+//    if (column_ != 1 && row_ != 1)
+//    {
+//        throw std::invalid_argument("\nNot a Vector\n");
+//    }
+//    if (column_ == 1)
+//    {
+//        return this->Dot(Matrix<T>(row_, 1, 1)).Get(0, 0);
+//    }
+//    else
+//    {
+//        return Matrix<T>(1, column_, 1).Dot(*this).Get(0, 0);
+//    }
+//}
 
 template <typename T>
-double Matrix<T>::NormVector_1() const
+double Matrix<T>::NormVector(long p) const
 {
     if (column_ != 1 && row_ != 1)
     {
         throw std::invalid_argument("\nNot a Vector\n");
     }
+    if (p < 1)
+    {
+        throw std::invalid_argument("p < 1!\n");
+    }
+    double result = 0;
     if (column_ == 1)
     {
-        return this->Dot(Matrix<T>(row_, 1, 1)).Get(0, 0);
+        for (long i = 0; i < row_; ++i)
+        {
+            result += pow(fabs(mat_[0][i]), p);
+        }
     }
     else
     {
-        return Matrix<T>(1, column_, 1).Dot(*this).Get(0, 0);
+        for (long i = 0; i < column_; ++i)
+        {
+            result += pow(fabs(mat_[i][0]), p);
+        }
     }
+    return pow(result, 1.0/p);
 }
 
 template <typename T>
@@ -681,7 +711,7 @@ Matrix<T> Matrix<T>::GramSchmidt() const
     tmp = tmp.Transpose().Schmidt();
     for (long i = 1; i <= row_; ++i)
     {
-        double norm = Matrix<T>(tmp[i - 1]).NormVector_2();
+        double norm = Matrix<T>(tmp[i - 1]).NormVector(2);
         tmp.MultiplyColumn(i, 1.0 / norm);
     }
     return tmp.Transpose();

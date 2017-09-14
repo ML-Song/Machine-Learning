@@ -14,7 +14,7 @@
 class Perceptron
 {
 public:
-    Perceptron(Matrix<double> train, Matrix<double>test);
+    Perceptron(Matrix<double> const &train, Matrix<double> const &test);
     Matrix<double> GetWeights();
     Status PrintWeights();
     Status Train(long iteration=1000, double rate=0.01, double stop=1e-3);
@@ -29,7 +29,7 @@ protected:
     Matrix<double> weigths_;
 };
 
-Perceptron::Perceptron(Matrix<double> train, Matrix<double>test)
+Perceptron::Perceptron(Matrix<double> const &train, Matrix<double> const &test)
 {
     Matrix<double> ones(train.GetColumn(), 1, 1.0);
     //ones.Show();
@@ -81,7 +81,7 @@ Status Perceptron::Train(long iteration, double rate, double stop)
     //train_y_.Show();
     while (count < iteration) {
         Matrix<double> delta(train_x_.Transpose().Dot((train_y_ - train_x_.Dot(weigths_))));
-        if (delta.NormVector_2() < stop)
+        if (delta.NormVector(2) < stop)
             break;
         weigths_ = weigths_ + rate * delta;
         ++count;

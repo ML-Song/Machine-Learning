@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Personal Info
+*.txt
+*.log

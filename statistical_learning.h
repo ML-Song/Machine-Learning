@@ -88,4 +88,15 @@ Status Perceptron::Train(long iteration, double rate, double stop)
     }
     return OK;
 }
+
+class SupportVectorMachine
+{
+public:
+    SupportVectorMachine(Matrix<double> const &train, Matrix<double> const &test);
+    
+    
+protected:
+    ;
+};
+
 #endif /* statistical_learning_h */

@@ -66,25 +66,25 @@ int main(int argc, const char * argv[]) {
 //    tmp.Show();
 //    cout << Matrix<double>(test2).NormVector(3);
     
-    vector<vector<double>> tmp;
-    for (auto i: {0.0, 1.0}) {
-        for (auto j: {0.0, 1.0})
-        {
-            for (auto k: {0.0, 1.0})
-            {
-                tmp.push_back(vector<double>{i, j, k, double (((int) i) && ((int) j) && ((int) k))});
-            }
-        }
-    }
-    Matrix<double> test(tmp);
-    cout << endl << "Used Time: " << double (clock() - start) / CLOCKS_PER_SEC << "s" << endl;
-    //test.Show();
-    Perceptron perceptron(test, test);
-    //cout << perceptron.Predict(Matrix<double>(test4));
-    //cout << perceptron.Evaluate();
-    perceptron.Train(1000, 0.01, 1e-3);
-    perceptron.PrintWeights();
-    cout << perceptron.Predict(Matrix<double>(vector<double>{0.5, 0.5, 0.5}));
+//    vector<vector<double>> tmp;
+//    for (auto i: {0.0, 1.0}) {
+//        for (auto j: {0.0, 1.0})
+//        {
+//            for (auto k: {0.0, 1.0})
+//            {
+//                tmp.push_back(vector<double>{i, j, k, double (((int) i) && ((int) j) && ((int) k))});
+//            }
+//        }
+//    }
+//    Matrix<double> test(tmp);
+//    cout << endl << "Used Time: " << double (clock() - start) / CLOCKS_PER_SEC << "s" << endl;
+//    //test.Show();
+//    Perceptron perceptron(test, test);
+//    //cout << perceptron.Predict(Matrix<double>(test4));
+//    //cout << perceptron.Evaluate();
+//    perceptron.Train(1000, 0.01, 1e-3);
+//    perceptron.PrintWeights();
+//    cout << perceptron.Predict(Matrix<double>(vector<double>{0.5, 0.5, 0.5}));
     
     
     
